@@ -5,11 +5,19 @@ import { io } from "socket.io-client";
 
 function App() {
     const [socket, setSocket] = useState(null);
-    const [message, setMessage] = useState(null);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         setSocket(io("http://localhost:4000"));
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("message-from-server", (data) => {
+            console.log(data);
+        });
+    }, [socket]);
 
     function handleForm(e) {
         e.preventDefault();
