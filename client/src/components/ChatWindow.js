@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
+import { useOutletContext } from "react-router-dom";
 import {
     Button,
     Box,
@@ -15,14 +14,11 @@ import {
 
 import SendIcon from "@mui/icons-material/Send";
 export default function ChatWindow() {
-    const [socket, setSocket] = useState(null);
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState([]);
     const [typing, setTyping] = useState(false);
     const [typingTimeout, setTypingTimeout] = useState(null);
-    useEffect(() => {
-        setSocket(io("http://localhost:4000"));
-    }, []);
+    const { socket } = useOutletContext();
 
     useEffect(() => {
         if (!socket) return;
@@ -65,65 +61,63 @@ export default function ChatWindow() {
     }
 
     return (
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <Card
-                sx={{
-                    padding: 2,
-                    marginTop: 10,
-                    width: "60%",
-                    backgroundColor: "grey",
-                }}
-            >
-                <Box sx={{ marginBottom: 5, color: "white" }}>
-                    {chat.map((data) => (
-                        <Typography
-                            key={data.message}
-                            sx={{
-                                textAlign: data.received ? "left" : "right",
-                            }}
-                        >
-                            {data.message}
-                        </Typography>
-                    ))}
-                </Box>
-                <Box component="form" onSubmit={handleForm}>
-                    {typing && (
-                        <InputLabel
-                            sx={{ color: "white" }}
-                            shrink
-                            htmlFor="message-input"
-                        >
-                            typing...
-                        </InputLabel>
-                    )}
-
-                    <OutlinedInput
+        <Card
+            sx={{
+                padding: 2,
+                marginTop: 10,
+                width: "60%",
+                backgroundColor: "darkgrey",
+            }}
+        >
+            <Box sx={{ marginBottom: 5, color: "white" }}>
+                {chat.map((data) => (
+                    <Typography
+                        key={data.message}
                         sx={{
-                            color: "white",
-                            input: { textAlign: "right" },
+                            textAlign: data.received ? "left" : "right",
                         }}
-                        fullWidth
-                        id="message-input"
-                        type={message}
-                        placeholder="Write your message"
-                        onChange={handleInput}
-                        endAdornment={
-                            <InputAdornment position="end">
-                                <IconButton
-                                    type="submit"
-                                    aria-label="toggle password visibility"
-                                    edge="end"
-                                >
-                                    <SendIcon />
-                                </IconButton>
-                            </InputAdornment>
-                        }
-                    />
-                    <Button variant="text" type="submit">
-                        Send!
-                    </Button>
-                </Box>
-            </Card>
-        </Box>
+                    >
+                        {data.message}
+                    </Typography>
+                ))}
+            </Box>
+            <Box component="form" onSubmit={handleForm}>
+                {typing && (
+                    <InputLabel
+                        sx={{ color: "white" }}
+                        shrink
+                        htmlFor="message-input"
+                    >
+                        typing...
+                    </InputLabel>
+                )}
+
+                <OutlinedInput
+                    sx={{
+                        color: "white",
+                        input: { textAlign: "right" },
+                    }}
+                    fullWidth
+                    id="message-input"
+                    type={message}
+                    placeholder="Write your message"
+                    onChange={handleInput}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                type="submit"
+                                aria-label="toggle password visibility"
+                                edge="end"
+                            >
+                                <SendIcon />
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+                <Button variant="text" type="submit">
+                    Send!
+                </Button>
+            </Box>
+        </Card>
     );
 }

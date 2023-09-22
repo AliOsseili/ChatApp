@@ -38,6 +38,10 @@ io.on("connection", (socket) => {
     socket.on("typing-stopped", (data) => {
         socket.broadcast.emit("typing-stopped-from-server");
     });
+    socket.on("typing-stopped", ({ roomId }) => {
+        console.log("joining room " + roomId);
+        socket.join(roomId);
+    });
 });
 
 httpServer.listen(PORT, () => {
