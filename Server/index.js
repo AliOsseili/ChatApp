@@ -31,6 +31,13 @@ io.on("connection", (socket) => {
     socket.on("disconnect", (socket) => {
         console.log("user left");
     });
+
+    socket.on("typing-started", (data) => {
+        socket.broadcast.emit("typing-started-from-server");
+    });
+    socket.on("typing-stopped", (data) => {
+        socket.broadcast.emit("typing-stopped-from-server");
+    });
 });
 
 httpServer.listen(PORT, () => {

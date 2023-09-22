@@ -10,6 +10,7 @@ import {
     InputAdornment,
     IconButton,
     Card,
+    InputLabel,
 } from "@mui/material";
 
 import SendIcon from "@mui/icons-material/Send";
@@ -17,7 +18,8 @@ export default function ChatWindow() {
     const [socket, setSocket] = useState(null);
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState([]);
-
+    const [typing, setTyping] = useState(false);
+    const [typingTimeout, setTypingTimeout] = useState(null);
     useEffect(() => {
         setSocket(io("http://localhost:4000"));
     }, []);
@@ -32,13 +34,34 @@ export default function ChatWindow() {
                 { message: data.message, received: true },
             ]);
         });
+        socket.on("typing-started-from-server", () => {
+            setTyping(true);
+        });
+
+        socket.on("typing-stopped-from-server", () => {
+            setTyping(false);
+        });
     }, [socket]);
 
     function handleForm(e) {
         e.preventDefault();
         socket.emit("send-message", { message });
-        setChat((prev) => [...prev, { message: message, received: true }]);
+        setChat((prev) => [...prev, { message: message, received: false }]);
         setMessage("");
+    }
+
+    function handleInput(e) {
+        setMessage(e.target.value);
+        socket.emit("typing-started");
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+        setTypingTimeout(
+            setTimeout(() => {
+                socket.emit("typing-stopped");
+            }, 1000)
+        );
     }
 
     return (
@@ -53,17 +76,37 @@ export default function ChatWindow() {
             >
                 <Box sx={{ marginBottom: 5, color: "white" }}>
                     {chat.map((data) => (
-                        <Typography key={data.message}>
+                        <Typography
+                            key={data.message}
+                            sx={{
+                                textAlign: data.received ? "left" : "right",
+                            }}
+                        >
                             {data.message}
                         </Typography>
                     ))}
                 </Box>
                 <Box component="form" onSubmit={handleForm}>
+                    {typing && (
+                        <InputLabel
+                            sx={{ color: "white" }}
+                            shrink
+                            htmlFor="message-input"
+                        >
+                            typing...
+                        </InputLabel>
+                    )}
+
                     <OutlinedInput
-                        sx={{ color: "white", width: "100%" }}
+                        sx={{
+                            color: "white",
+                            input: { textAlign: "right" },
+                        }}
+                        fullWidth
+                        id="message-input"
                         type={message}
                         placeholder="Write your message"
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={handleInput}
                         endAdornment={
                             <InputAdornment position="end">
                                 <IconButton
