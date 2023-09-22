@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import {
     Button,
     Box,
@@ -19,6 +19,7 @@ export default function ChatWindow() {
     const [typing, setTyping] = useState(false);
     const [typingTimeout, setTypingTimeout] = useState(null);
     const { socket } = useOutletContext();
+    const { roomId } = useParams();
 
     useEffect(() => {
         if (!socket) return;
@@ -41,21 +42,21 @@ export default function ChatWindow() {
 
     function handleForm(e) {
         e.preventDefault();
-        socket.emit("send-message", { message });
+        socket.emit("send-message", { message, roomId });
         setChat((prev) => [...prev, { message: message, received: false }]);
         setMessage("");
     }
 
     function handleInput(e) {
         setMessage(e.target.value);
-        socket.emit("typing-started");
+        socket.emit("typing-started", { roomId });
 
         if (typingTimeout) {
             clearTimeout(typingTimeout);
         }
         setTypingTimeout(
             setTimeout(() => {
-                socket.emit("typing-stopped");
+                socket.emit("typing-stopped", { roomId });
             }, 1000)
         );
     }
@@ -69,10 +70,10 @@ export default function ChatWindow() {
                 backgroundColor: "darkgrey",
             }}
         >
+            {roomId && <Typography>Room: {roomId}</Typography>}
             <Box sx={{ marginBottom: 5, color: "white" }}>
                 {chat.map((data) => (
                     <Typography
-                        key={data.message}
                         sx={{
                             textAlign: data.received ? "left" : "right",
                         }}

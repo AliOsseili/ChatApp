@@ -24,22 +24,28 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-    socket.on("send-message", (data) => {
-        socket.broadcast.emit("message-from-server", data);
+    socket.on("send-message", ({ message, roomId }) => {
+        let skt = socket.broadcast;
+        skt = roomId ? skt.to(roomId) : skt;
+        skt.emit("message-from-server", { message });
     });
 
     socket.on("disconnect", (socket) => {
         console.log("user left");
     });
 
-    socket.on("typing-started", (data) => {
-        socket.broadcast.emit("typing-started-from-server");
-    });
-    socket.on("typing-stopped", (data) => {
-        socket.broadcast.emit("typing-stopped-from-server");
+    socket.on("typing-started", ({ roomId }) => {
+        console.log(roomId);
+        let skt = socket.broadcast;
+        skt = roomId ? skt.to(roomId) : skt;
+        skt.emit("typing-started-from-server");
     });
     socket.on("typing-stopped", ({ roomId }) => {
-        console.log("joining room " + roomId);
+        let skt = socket.broadcast;
+        skt = roomId ? skt.to(roomId) : skt;
+        skt.emit("typing-stopped-from-server");
+    });
+    socket.on("join-room", ({ roomId }) => {
         socket.join(roomId);
     });
 });
