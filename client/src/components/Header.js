@@ -13,14 +13,24 @@ export default function Header({ socket }) {
         socket.emit("new-room-created", { roomId });
         setRooms([...rooms, roomId]);
     }
+    async function fetchRooms() {
+        const res = await fetch("http://localhost:4000/rooms");
+        const { rooms } = await res.json();
+        setRooms(rooms);
+        console.log(rooms);
+    }
 
     useEffect(() => {
         if (!socket) return;
 
         socket.on("new-room-created", ({ roomId }) => {
-            setRooms([...rooms, roomId]);
+            fetchRooms();
         });
     }, [socket]);
+
+    useEffect(() => {
+        fetchRooms();
+    }, []);
     return (
         <Card sx={{ marginTop: 5, backgroundColor: "grey" }} raised>
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -30,18 +40,19 @@ export default function Header({ socket }) {
                             Home
                         </Button>
                     </Link>
-                </Box>
-                {rooms.map((room) => (
-                    <Link
-                        style={{ textDecoration: "none" }}
-                        to={`/room/:${room}`}
-                    >
-                        <Button sx={{ color: "white" }} variant="text">
-                            {room}
-                        </Button>
-                    </Link>
-                ))}
 
+                    {rooms.map((room) => (
+                        <Link
+                            key={room.id}
+                            style={{ textDecoration: "none" }}
+                            to={`/room/:${room.roomId}`}
+                        >
+                            <Button sx={{ color: "white" }} variant="text">
+                                {room.name}
+                            </Button>
+                        </Link>
+                    ))}
+                </Box>
                 <Button
                     sx={{ color: "white" }}
                     variant="text"
